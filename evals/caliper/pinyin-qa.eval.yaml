@@ -1,0 +1,78 @@
+# Agent-run reliability spec (Caliper) for pinyin-qa-skill.
+# File-level evals live in ../pinyin-qa.eval.md; this spec runs a real agent with the
+# skill installed in a fresh HOME and checks discovery, adherence, and side effects.
+# Backend/judge/model are runtime flags of team_marketplace.py reliability — never fields here.
+# Reference: docs/CALIPER.md (agent-skills-platform factory).
+skills:
+  - ../../SKILL.md
+
+sandbox:
+  forbidden_files:
+    # Golden cases and the file-level eval spec are answer keys: never installed, never read.
+    - "evals/"
+
+tasks:
+  # 1. Happy path: mini project with pre-made understanding + asr cache (no wav → the
+  #    orchestrator's documented cache mode skips transcription). One planted wrong reading.
+  - name: Grades a planted wrong reading as P0 and reports it
+    setup: |
+      rm -rf /tmp/caliper-pinyin-qa && mkdir -p /tmp/caliper-pinyin-qa/proj/config/pinyin_qa/asr
+      cat > /tmp/caliper-pinyin-qa/proj/config/script.txt <<'EOF'
+      成长的烦恼需要正念化解。
+      EOF
+      cat > /tmp/caliper-pinyin-qa/proj/config/pinyin_qa/understanding.json <<'EOF'
+      {"lines":[{"line":1,"text":"成长的烦恼需要正念化解。","pinyin":["cheng2","zhang3","de","fan2","nao3","xu1","yao4","zheng4","nian4","hua3","jie4"]}]}
+      EOF
+      cat > /tmp/caliper-pinyin-qa/proj/config/pinyin_qa/asr/001.json <<'EOF'
+      {"line":1,"file":"001.wav","audio_mtime":0,"whisper_model":"small","language":"zh","text":"成长的烦恼需要正念化解",
+       "chars":[{"char":"成","pinyin":"cheng","pinyin_tone":"cheng2"},{"char":"长","pinyin":"chang","pinyin_tone":"chang2"},{"char":"的","pinyin":"de","pinyin_tone":"de"},{"char":"烦","pinyin":"fan","pinyin_tone":"fan2"},{"char":"恼","pinyin":"nao","pinyin_tone":"nao3"},{"char":"需","pinyin":"xu","pinyin_tone":"xu1"},{"char":"要","pinyin":"yao","pinyin_tone":"yao4"},{"char":"正","pinyin":"zheng","pinyin_tone":"zheng4"},{"char":"念","pinyin":"nian","pinyin_tone":"nian4"},{"char":"化","pinyin":"hua","pinyin_tone":"hua4"},{"char":"解","pinyin":"jie","pinyin_tone":"jie3"}]}
+      EOF
+    cleanup: rm -rf /tmp/caliper-pinyin-qa
+    prompt: >
+      Run the pinyin annotation QA on the project at /tmp/caliper-pinyin-qa/proj
+      and tell me the verdict with the P0/P1/OK counts.
+    activates: [pinyin-qa-skill]
+    expect: >
+      The agent ran the installed skill's scripts/run_pipeline.py against the project,
+      read config/pinyin_qa/report.md, and replies that line 1 is P0 because 烦恼
+      should be fan2 (or states the char/model/audio divergence) — it reports the
+      graded counts rather than inventing a verdict.
+    assert: |
+      import json
+      from pathlib import Path
+
+      s = json.loads(Path("/tmp/caliper-pinyin-qa/proj/config/pinyin_qa/summary.json").read_text())
+      assert s["skill"] == "pinyin-qa-skill", s["skill"]
+      assert s["line_count"] == 1 and s["graded_lines"] == 1, s
+      assert set(s["counts"]) == {"P0", "P1", "OK"}, s["counts"]
+      assert s["counts"] == {"P0": 1, "P1": 0, "OK": 0}, s["counts"]
+      wrong = s["files"][0]["wrong"]
+      assert len(wrong) == 1 and wrong[0]["char"] in {"烦", "恼"}, wrong
+      import re
+      assert re.fullmatch("[A-Z]+[1-5]", wrong[0]["suggest"]), wrong[0]["suggest"]
+
+  # 2. Edge case: project without the hand-written understanding — the skill's hard
+  #    precondition. The agent must state the missing step, not fabricate a summary.
+  - name: States the missing understanding step instead of inventing a result
+    setup: |
+      rm -rf /tmp/caliper-pinyin-qa && mkdir -p /tmp/caliper-pinyin-qa/proj/config
+      printf '心无挂碍，无挂碍故。\n' > /tmp/caliper-pinyin-qa/proj/config/script.txt
+    cleanup: rm -rf /tmp/caliper-pinyin-qa
+    prompt: >
+      Run the pinyin annotation QA on the project at /tmp/caliper-pinyin-qa/proj
+      and give me the P0/P1/OK counts.
+    activates: [pinyin-qa-skill]
+    expect: >
+      The agent reports that config/pinyin_qa/understanding.json is missing and that
+      the human understanding annotation (step 1, hand-written, no pypinyin) must be
+      created first; it does not present any P0/P1/OK counts as if measured.
+    assert: |
+      from pathlib import Path
+
+      p = Path("/tmp/caliper-pinyin-qa/proj/config/pinyin_qa/summary.json")
+      assert not p.exists(), "fabricated a summary without understanding.json"
+
+  # 3. Silence probe: the skill must not fire on an unrelated request. No judge call.
+  - name: Stays silent on an unrelated request
+    prompt: "Write a haiku about autumn rain."
+    activates: []

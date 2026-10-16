@@ -38,7 +38,7 @@ provenance:
 
 验证「TTS 音频实际读音」与「脚本注音是否让 TTS 读对」：**逐字理解标注 →
 Whisper 转写 → 逐字对比 → 分级报告 → 修注音 → 重生成 → 循环回归**。
-分级全部固化在 `scripts/compare.py`，agent 只解读报告与处置，不重新推导口径。
+分级全部固化：Run `python3 scripts/compare.py` 出分级，agent 只解读报告与处置，不重新推导口径。
 
 **范围边界**：
 - 本 skill 回答「音频读音 vs 该读的音（理解/注音）对不对、错在哪字、怎么修」。
@@ -56,7 +56,7 @@ Whisper 转写 → 逐字对比 → 分级报告 → 修注音 → 重生成 →
 ## Prerequisites
 
 ```bash
-python3 scripts/transcribe.py --check-prereqs   # whisper / pypinyin / rapidfuzz
+python3 scripts/run_pipeline.py --check-prereqs   # whisper / pypinyin / rapidfuzz
 ```
 
 缺依赖时 `pip install -r requirements.txt`。首次转写需联网下载 Whisper 模型
@@ -64,11 +64,15 @@ python3 scripts/transcribe.py --check-prereqs   # whisper / pypinyin / rapidfuzz
 
 ## Usage — 完整闭环
 
+Run `python3 scripts/run_pipeline.py` —— 编排器按序在代码内执行「前置校验 → 转写（mtime
+缓存，无 wav 则用既有 asr 缓存）→ 对比分级」，数据接线不经 agent 手——
+agent 的脚本侧动作只有两条命令（Step 1 与 Step 4 是人的判断，不是脚本）：
+
 ```bash
 PROJ=content/productions/xxx/0000-章节名     # 你的项目目录（下同）
 
 # 0) 依赖自检
-python3 scripts/transcribe.py --check-prereqs
+python3 scripts/run_pipeline.py --check-prereqs
 
 # 1) 【理解标注】agent 逐字读 config/script.txt，凭自身中文理解写
 #    $PROJ/config/pinyin_qa/understanding.json ——【禁用一切库/脚本，
@@ -77,23 +81,19 @@ python3 scripts/transcribe.py --check-prereqs
 #    要求 len(pinyin)==该行汉字数（脚本会强校验）；行多可分块写
 #    understanding-01.json / -02.json（按行号切，行号不许重复）。
 
-# 2) 音频转写（结果按 wav mtime 缓存于 config/pinyin_qa/asr/）
-python3 scripts/transcribe.py --project-dir $PROJ            # 全量
-python3 scripts/transcribe.py --project-dir $PROJ --lines 2,8,39   # 指定行
+# 2) 唯一 happy-path 命令：转写 + 对比一次跑完
+#    （默认写 config/pinyin_qa/{summary.json,report.md,report.jsonl}）
+python3 scripts/run_pipeline.py --project-dir $PROJ
 
-# 3) 对比分级（默认写 config/pinyin_qa/{summary.json,report.md,report.jsonl}）
-python3 scripts/compare.py --project-dir $PROJ
+# 3) 读 report.md：§1 总览 / §3 错音明细（P0）/ §4 漏覆盖（P1）/ §6 处置建议
 
-# 4) 读 report.md：§1 总览 / §3 错音明细（P0）/ §4 漏覆盖（P1）/ §6 处置建议
-
-# 5) 修 P0 —— 注音字典优先（见 references/annotation-rules.md）：
+# 4) 修 P0 —— 注音字典优先（见 references/annotation-rules.md）：
 #    改主仓 scripts/annotate-polyphones.py 的 WORD_RULES → 重跑注音脚本
 #    → 按 report §3 的行号重生成音频（gen-tts-sequential.py --line N）
 
-# 6) 回归循环：重生成的行音频 mtime 变新 → 缓存自动失效
-python3 scripts/transcribe.py --project-dir $PROJ --lines <改动行>   # 只补转改动行
-python3 scripts/compare.py --project-dir $PROJ --fail-on-p0          # P0>0 → exit 2
-# 重复 5-6 直到 P0=0（默认上限 5 轮，超过则停下来向用户汇报卡点）
+# 5) 回归循环：重生成的行音频 mtime 变新 → 缓存自动失效 → 只补转改动行
+python3 scripts/run_pipeline.py --project-dir $PROJ --lines <改动行> --fail-on-p0
+# P0>0 → exit 2；重复 4-5 直到 P0=0（默认上限 5 轮，超过则停下来向用户汇报卡点）
 ```
 
 依赖/回归自检：
@@ -113,7 +113,7 @@ python3 scripts/run_evals.py --rollout --include-holdout  # 期望 21 passed
 | `config/pinyin_qa/report.md` | 人读报告：总览 / 错音明细 / 漏覆盖 / 容错放行 / 处置 / 口径 |
 | `config/pinyin_qa/report.jsonl` | 逐行原始记录 |
 
-## Grading（固化在 `scripts/compare.py`——勿在别处重新推导）
+## Grading（唯一实现：`python3 scripts/compare.py`——勿在别处重新推导）
 
 | 级别 | 触发 | 处置 |
 |---|---|---|
@@ -127,17 +127,17 @@ correct / covered`（漏覆盖不计入分母）。
 ## Workflow Recipes
 
 **首次全量质检**：check-prereqs → 手写 understanding（分块防漏，行数与
-script.txt 汉字行对齐）→ transcribe 全量 → compare → 按 report §3/§6 给出
-修复清单（字典规则改哪条、重生成哪些行）→ 用户确认后修+重生成 → 循环。
+script.txt 汉字行对齐）→ `run_pipeline --project-dir $PROJ` → 按 report §3/§6
+给出修复清单（字典规则改哪条、重生成哪些行）→ 用户确认后修+重生成 → 循环。
 
-**修复回归**：只对改动行 `transcribe --lines N`（mtime 自动失效，其余命中
-缓存）→ `compare --fail-on-p0` → exit 0 即通过；report.md 每轮覆盖更新。
-拿不准是理解错还是音频错时（P0 的两义性），对照 `polyphone_report.json` 与
-上下文判断，**不要**改 understanding 去迎合音频。
+**修复回归**：`run_pipeline --project-dir $PROJ --lines <改动行> --fail-on-p0`
+（mtime 自动失效只补转改动行，其余命中缓存）→ exit 0 即通过；report.md 每轮
+覆盖更新。拿不准是理解错还是音频错时（P0 的两义性），对照 `polyphone_report.json`
+与上下文判断，**不要**改 understanding 去迎合音频。
 
-**声调级（可选）**：`compare.py --strict-tone`（两边归一为数字声调 TONE3）
-——仅在明确要检声调词典差异时用；Whisper 字形本身不带声调，声调级错误本法
-不可检（见 references/comparison.md §5 局限）。
+**声调级（可选）**：`run_pipeline.py --project-dir ... --strict-tone`
+（两边归一为数字声调 TONE3）——仅在明确要检声调词典差异时用；Whisper 字形
+本身不带声调，声调级错误本法不可检（Read `references/comparison.md` §5 局限章节）。
 
 ## Gotchas
 
@@ -172,7 +172,8 @@ script.txt 汉字行对齐）→ transcribe 全量 → compare → 按 report §
 
 - Read `references/annotation-rules.md` for 注音写法规范与「字典优先」修复路径
 - Read `references/comparison.md` for 对齐/容错/分级的完整口径与局限
-- Run `python3 scripts/transcribe.py --project-dir ...` to 转写（Whisper+词典拼音缓存）
-- Run `python3 scripts/compare.py --project-dir ...` to 对比分级（规则唯一权威实现）
+- Run `python3 scripts/run_pipeline.py --project-dir ...` for the happy path
+  （转写→对比单入口；单步诊断才直接 Run `python3 scripts/transcribe.py` /
+  `python3 scripts/compare.py`，步骤函数即编排器所调的同一实现）
 - Run `python3 scripts/run_evals.py --rollout` for 回归（14 passed / +holdout 21）
 - Read `evals/pinyin-qa.eval.md` for 损失函数与 golden 分支覆盖

@@ -1,0 +1,8 @@
+{
+  "name": "pinyin-qa-skill",
+  "version": "1.0.0",
+  "description": "Pinyin annotation QA pipeline: agent hand-annotates pinyin, Whisper transcribes audio, normalized alignment grades P0/P1/OK, dictionary-first fixes until P0=0.",
+  "author": {
+    "name": "pix"
+  }
+}

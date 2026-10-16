@@ -8,7 +8,7 @@
 
 用户给出项目目录，要求拼音质检、注音检查、多音字注音验证、pinyin QA、读音
 比对（激活词见 SKILL.md frontmatter）。先跑
-`python3 scripts/transcribe.py --check-prereqs`，缺依赖就提示
+`python3 scripts/run_pipeline.py --check-prereqs`，缺依赖就提示
 `pip install -r requirements.txt` 并停止。
 
 ## Usage
@@ -17,18 +17,21 @@
    判断读音写 `$PROJ/config/pinyin_qa/understanding.json`
    （`{"lines":[{"line","text","pinyin":[带调小写如 fou3]}]}`，长度强校验，
    可分块 `understanding-NN.json`，行号不许重复）。**不许用 pypinyin 生成**。
-2. **转写**：`python3 scripts/transcribe.py --project-dir $PROJ`
-   （`--lines 2,8,39` 指定行；mtime 缓存于 `config/pinyin_qa/asr/`）。
-3. **对比**：`python3 scripts/compare.py --project-dir $PROJ`
-   （`--fail-on-p0` 用于循环门禁；`--strict-tone` 可选）。
-4. **读 `report.md`**：§3 错音明细（行/字位/模型/音频/建议注音/上下文）、
+2. **转写+对比（唯一 happy-path，一步跑完）**：
+   `python3 scripts/run_pipeline.py --project-dir $PROJ`
+   （内部按序执行：understanding 前置校验 → mtime 缓存转写 → 归一对齐分级；
+   `--lines 2,8,39` 指定行，`--fail-on-p0` 循环门禁，`--strict-tone` 可选，
+   `--output` 自定 summary 落点）。
+3. **读 `report.md`**：§3 错音明细（行/字位/模型/音频/建议注音/上下文）、
    §4 漏覆盖、§5 容错放行、§6 处置。处置按
    `references/annotation-rules.md`——**字典优先**（改主仓
    `scripts/annotate-polyphones.py` WORD_RULES → 重跑注音 → 重生成受影响行），
    直改 `script_annotated.txt` 是会被覆盖的兜底。
-5. **循环**：重生成行的音频 mtime 变新 → 缓存自动失效 → 只 `--lines` 补转
-   改动行 → `compare --fail-on-p0`，到 P0=0 收口（上限 5 轮，卡住就汇报）。
-   **不要重新推导分级/容错口径**——规则固化在 `scripts/compare.py`。
+4. **循环**：重生成行的音频 mtime 变新 → 缓存自动失效 →
+   `python3 scripts/run_pipeline.py --project-dir $PROJ --lines <改动行> --fail-on-p0`，
+   到 P0=0 收口（上限 5 轮，卡住就汇报）。
+   **不要重新推导分级/容错口径**——规则固化在 `scripts/compare.py`
+   （run_pipeline 的对比步骤即调用该实现）。
 
 ## Gotchas
 

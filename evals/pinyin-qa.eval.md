@@ -8,7 +8,7 @@ reading / whisper dropout).
 ```json
 {
   "skill": "pinyin-qa-skill",
-  "run": "python3 scripts/compare.py --project-dir {input} --output {output}",
+  "run": "python3 scripts/run_pipeline.py --project-dir {input} --output {output}",
   "criteria": [
     {
       "id": "valid-summary-json",
@@ -84,10 +84,12 @@ reading / whisper dropout).
 - **Fixtures are pure JSON** (no audio synthesis): each `input/` is a miniature
   project dir with `config/pinyin_qa/understanding.json` + `asr/*.json`.
   Regenerate with `python3 evals/make_fixtures.py`, then rebuild baselines with
-  `python3 scripts/compare.py --project-dir evals/golden/<case>/input
-  --output evals/golden/<case>/expected.json` and delete the sibling
-  `report.md`/`report.jsonl` (baselines must have no sidecars so criteria 5/6
-  no-op in baseline mode and assert for real only under `--rollout`).
+  `python3 scripts/run_pipeline.py --project-dir evals/golden/<case>/input
+  --output evals/golden/<case>/expected.json` (fixture dirs carry no wav, so the
+  orchestrator skips transcription and runs compare from the shipped asr cache)
+  and delete the sibling `report.md`/`report.jsonl` (baselines must have no
+  sidecars so criteria 5/6 no-op in baseline mode and assert for real only
+  under `--rollout`).
 - `run` needs no flags: default (non-strict) comparison is the contract under
   test; strict-tone mode is exercised by the 0008 smoke run, not by evals.
 - Branch coverage: case-1 pins the **tolerated** branch (音乐 `yue∈{le,yue}`,

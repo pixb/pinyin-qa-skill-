@@ -1,0 +1,339 @@
+{
+  "artifacts": [
+    {
+      "id": "claude_plugin_marketplace_json",
+      "path": ".claude-plugin/marketplace.json",
+      "sha256": "48280b78e1c99c8acc116204c658149222b231b835fcaed5b7394489ec0e12ce",
+      "type": "package_file"
+    },
+    {
+      "id": "claude_plugin_plugin_json",
+      "path": ".claude-plugin/plugin.json",
+      "sha256": "353c08ca9690839a90e41c0eb4114a0d493972a3374380ef111f7bb42fea65a9",
+      "type": "package_file"
+    },
+    {
+      "id": "gitignore",
+      "path": ".gitignore",
+      "sha256": "aae52254d328f89ac3f61a00f9f9ef94fb9d238ae42d1277782099061279d84d",
+      "type": "package_file"
+    },
+    {
+      "id": "agents_document",
+      "path": "AGENTS.md",
+      "sha256": "ce98bcbc02938cea4e85ccf9b77ead300e017fde3a49bbe0864b5054afc0221d",
+      "type": "companion_instruction"
+    },
+    {
+      "id": "readme_md",
+      "path": "README.md",
+      "sha256": "7e4417565208128ebc7fdcc26f1754ea1be98742be59bf44699303f60313074b",
+      "type": "package_file"
+    },
+    {
+      "id": "skill_document",
+      "path": "SKILL.md",
+      "sha256": "935b2c71ca90eb72e244ae2e57a16633d359a7b87d56726e46df9e386d72cee0",
+      "type": "instruction"
+    },
+    {
+      "id": "discovery_json",
+      "path": "discovery.json",
+      "sha256": "bfde23f1b42dd998d1394464b291e5442385910ff4fa78eb0e2a80a2b9e09809",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_caliper_pinyin_qa_eval_yaml",
+      "path": "evals/caliper/pinyin-qa.eval.yaml",
+      "sha256": "39329a482f2eb73b1ed4259cbc3b79e524186447127d0af95d62eeafc0d5214c",
+      "type": "package_file"
+    },
+    {
+      "id": "case_1_match_expected",
+      "path": "evals/golden/case-1-match/expected.json",
+      "sha256": "2837714dc792f13b502161d01976dafe739c41350a2108cb340d65b5a592901f",
+      "type": "expected_output"
+    },
+    {
+      "id": "evals_golden_case_1_match_input_config_pinyin_qa_asr_001_json",
+      "path": "evals/golden/case-1-match/input/config/pinyin_qa/asr/001.json",
+      "sha256": "886e68a990b08eebf474a242aa775b439e4df6676741c4bafcb1a06b59b10f0d",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_golden_case_1_match_input_config_pinyin_qa_asr_002_json",
+      "path": "evals/golden/case-1-match/input/config/pinyin_qa/asr/002.json",
+      "sha256": "1ef3aa58c377614a79d473e7cd26529f0321cd8df4d2427be85aec653de9e3b7",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_golden_case_1_match_input_config_pinyin_qa_asr_003_json",
+      "path": "evals/golden/case-1-match/input/config/pinyin_qa/asr/003.json",
+      "sha256": "0e549147e06696990287759b0ce7ea9b2d912e591188704f526242e25f5992a3",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_golden_case_1_match_input_config_pinyin_qa_understanding_json",
+      "path": "evals/golden/case-1-match/input/config/pinyin_qa/understanding.json",
+      "sha256": "29d46b475f32d15986791be1448c1171ad28140ed5051203fcbea06281e5a2b2",
+      "type": "package_file"
+    },
+    {
+      "id": "case_2_wrong_expected",
+      "path": "evals/golden/case-2-wrong/expected.json",
+      "sha256": "7b7137d80d22c286b66a1e518092d8777c1dc29821e5af903173ad03d3a37dec",
+      "type": "expected_output"
+    },
+    {
+      "id": "evals_golden_case_2_wrong_input_config_pinyin_qa_asr_001_json",
+      "path": "evals/golden/case-2-wrong/input/config/pinyin_qa/asr/001.json",
+      "sha256": "ec0f2c0acb4693ddb359c7dfbb36b66d1525488d6ce09171d6d251787babf403",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_golden_case_2_wrong_input_config_pinyin_qa_asr_002_json",
+      "path": "evals/golden/case-2-wrong/input/config/pinyin_qa/asr/002.json",
+      "sha256": "f69f2ae35e88b9700007dc05869e25f3bd5ea7bc710c6a57dbd9fb290533a57c",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_golden_case_2_wrong_input_config_pinyin_qa_understanding_json",
+      "path": "evals/golden/case-2-wrong/input/config/pinyin_qa/understanding.json",
+      "sha256": "529b724d4a1b6054f1771a774b00c5f8e122cfeb60ae940af3bfe5cc7fb52848",
+      "type": "package_file"
+    },
+    {
+      "id": "case_3_missing_expected",
+      "path": "evals/golden/case-3-missing/expected.json",
+      "sha256": "9870fb83048ced0fb662fb9ef3b0a5c87050536c08be275de94ba51c45ae87fb",
+      "type": "expected_output"
+    },
+    {
+      "id": "evals_golden_case_3_missing_input_config_pinyin_qa_asr_001_json",
+      "path": "evals/golden/case-3-missing/input/config/pinyin_qa/asr/001.json",
+      "sha256": "3a7fd7dce5ceac22b8dbcd83f747288b5c87b57f2281b3bfadd68d9478e77f23",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_golden_case_3_missing_input_config_pinyin_qa_asr_002_json",
+      "path": "evals/golden/case-3-missing/input/config/pinyin_qa/asr/002.json",
+      "sha256": "451b719c0a7b5070c2d5561099ea91b1914131827c7c3e830dc85ae207aa6547",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_golden_case_3_missing_input_config_pinyin_qa_understanding_json",
+      "path": "evals/golden/case-3-missing/input/config/pinyin_qa/understanding.json",
+      "sha256": "7938adade2809105fc156c31527e157f24613b341820caecdc8e181e4dd609db",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_make_fixtures_py",
+      "path": "evals/make_fixtures.py",
+      "sha256": "c77b6b5af09a0e2c373cfa3cfb1e91994fdce5870ea80ba5bb9650757d54173b",
+      "type": "package_file"
+    },
+    {
+      "id": "evals_pinyin_qa_eval_md",
+      "path": "evals/pinyin-qa.eval.md",
+      "sha256": "8b0e538aef3a02599f8be8b01b8ca05aa78690a77a39d6ffa77c2b011f8f6d16",
+      "type": "eval_spec"
+    },
+    {
+      "id": "install_ps1",
+      "path": "install.ps1",
+      "sha256": "c07ce79cb5d9b289d0cf8c9c9a44424d78f53ece59e4d6983a1cb2cdd53ed391",
+      "type": "package_file"
+    },
+    {
+      "id": "install_sh",
+      "path": "install.sh",
+      "sha256": "9f9534856c46a5ec3fc3e7636b3c83434ecfac2846ef92aa8f3606b73362d244",
+      "type": "package_file"
+    },
+    {
+      "id": "references_annotation_rules_md",
+      "path": "references/annotation-rules.md",
+      "sha256": "1aad5b59b3410b33c348e95d23741018e65721ccd76822fd06299eea9b4036c4",
+      "type": "reference"
+    },
+    {
+      "id": "references_comparison_md",
+      "path": "references/comparison.md",
+      "sha256": "076d86ed5f41eb71bbd7d6d9d7050f622d057cd32121613655815b439bb9096d",
+      "type": "reference"
+    },
+    {
+      "id": "requirements_txt",
+      "path": "requirements.txt",
+      "sha256": "40fde8f8472ca2ff8b2bdc83f720224eaf2a0e515c9018ee6d78db1940d89341",
+      "type": "dependency_manifest"
+    },
+    {
+      "id": "scripts_compare_py",
+      "path": "scripts/compare.py",
+      "sha256": "09e979c793fcba957b36f79b4424b00a33ef460979d0723a6023534d2c787ed9",
+      "type": "script"
+    },
+    {
+      "id": "scripts_dependency_health_py",
+      "path": "scripts/dependency_health.py",
+      "sha256": "7c8beebbc46ff1a7e3ef800626e0c7a377b0c27a6c00b98a9eb2688ed8a4285e",
+      "type": "script"
+    },
+    {
+      "id": "scripts_evolve_py",
+      "path": "scripts/evolve.py",
+      "sha256": "5f35ea818449d0dd51f7d6d0359897659425cc4f2a8dcb66fe6a83540e3a2cb5",
+      "type": "script"
+    },
+    {
+      "id": "scripts_review_staleness_py",
+      "path": "scripts/review_staleness.py",
+      "sha256": "706b04f17a6936305017fa94da3840eeb2012fcca661ee6dca11c0089035dab1",
+      "type": "script"
+    },
+    {
+      "id": "scripts_run_evals_py",
+      "path": "scripts/run_evals.py",
+      "sha256": "7a2776a33d1c90e76bb1571413ce4996fc1938775509c4215aaa1fe7409c9202",
+      "type": "script"
+    },
+    {
+      "id": "pipeline",
+      "path": "scripts/run_pipeline.py",
+      "sha256": "e472e2aff5c71930237ffed303a4f5d725c336a4959de647dd21df26b38c07b3",
+      "type": "script"
+    },
+    {
+      "id": "scripts_schema_drift_py",
+      "path": "scripts/schema_drift.py",
+      "sha256": "4d15b1fd14324c7305e4017b91b2b35ee90e589e007c7eb1bad7f1ddd4d96687",
+      "type": "script"
+    },
+    {
+      "id": "scripts_skill_document_py",
+      "path": "scripts/skill_document.py",
+      "sha256": "ec86981b75ea29263c9e71295f284067096754bbc4b294e7f2e11560830e61b5",
+      "type": "script"
+    },
+    {
+      "id": "scripts_staleness_check_py",
+      "path": "scripts/staleness_check.py",
+      "sha256": "b3be7f9e4832d42d301a82395dba08383cf417535e8e42c2e2f73b6ea98a192b",
+      "type": "script"
+    },
+    {
+      "id": "scripts_success_ledger_py",
+      "path": "scripts/success_ledger.py",
+      "sha256": "f0eee7d0deac4dca979c325ff3920231cdc6ad0a1263b5d801dd93c0e47b036f",
+      "type": "script"
+    },
+    {
+      "id": "scripts_transcribe_py",
+      "path": "scripts/transcribe.py",
+      "sha256": "a49a6e9be29fece3146fe42e22bdd1f5bee04dcda23896ef12c76447f5c2c261",
+      "type": "script"
+    },
+    {
+      "id": "scripts_wiki_maintenance_py",
+      "path": "scripts/wiki_maintenance.py",
+      "sha256": "e8b65667530f7b78aece53b3fd2c49e05b53767e2d6ef1f98ff37db58b04ce14",
+      "type": "script"
+    },
+    {
+      "id": "wiki_readme_md",
+      "path": "wiki/README.md",
+      "sha256": "750a1db3ff19ec39b7caf0c4f63a32c83dc854349a201f8da12fecfc61ec207c",
+      "type": "package_file"
+    },
+    {
+      "id": "wiki_index_md",
+      "path": "wiki/index.md",
+      "sha256": "ff8db0bddf99128815a6d4ecc26c12f4d95b6c8cb05ac02696bdd9ce7e0dd753",
+      "type": "package_file"
+    },
+    {
+      "id": "wiki_logs_md",
+      "path": "wiki/logs.md",
+      "sha256": "e95f791330b8702b1cd99d271e9f577738ebb7354863422de2338d5091fe7330",
+      "type": "package_file"
+    },
+    {
+      "id": "wiki_skill_impact_md",
+      "path": "wiki/skill-impact.md",
+      "sha256": "a79d68179ab12324404601d5a4360f8d6d77b5e22eb87f218b32d00a41334756",
+      "type": "package_file"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "every_expected_is_reachable",
+      "severity": "error"
+    },
+    {
+      "id": "deterministic_multistep_has_orchestrator",
+      "severity": "error"
+    },
+    {
+      "id": "semantic_recon_contracts_ready",
+      "severity": "error"
+    }
+  ],
+  "edges": [
+    {
+      "from": "pipeline",
+      "relation": "compared_against",
+      "to": "case_1_match_expected"
+    },
+    {
+      "from": "pipeline",
+      "relation": "compared_against",
+      "to": "case_2_wrong_expected"
+    },
+    {
+      "from": "pipeline",
+      "relation": "compared_against",
+      "to": "case_3_missing_expected"
+    }
+  ],
+  "gates": [
+    {
+      "id": "spec",
+      "inputs": [
+        "skill_document",
+        "package_index"
+      ]
+    },
+    {
+      "id": "security",
+      "inputs": [
+        "package"
+      ]
+    },
+    {
+      "id": "pipeline",
+      "inputs": [
+        "scripts",
+        "dependency_manifests"
+      ]
+    },
+    {
+      "id": "eval_schema",
+      "inputs": [
+        "eval_specs",
+        "golden_cases",
+        "eval_runner"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "semantic_recon": {
+    "reasons": [],
+    "sources": [],
+    "status": "NOT_REQUIRED"
+  },
+  "skill": "pinyin-qa-skill",
+  "workflow": {
+    "kind": "deterministic"
+  }
+}

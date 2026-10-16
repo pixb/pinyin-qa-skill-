@@ -25,6 +25,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 import sys
@@ -70,6 +71,108 @@ def cache_valid(cache_path: Path, audio_path: Path) -> bool:
     return current <= cached_mtime + 1e-3
 
 
+def run_transcribe(
+    project_dir: str | Path,
+    *,
+    audio_dir: str | Path | None = None,
+    out_dir: str | Path | None = None,
+    model: str = "small",
+    language: str = "zh",
+    lines: str | None = None,
+    force: bool = False,
+) -> int:
+    """步骤函数（供 run_pipeline.py 导入调用）：缓存判断 → Whisper → 逐字拼音 → 写缓存。
+
+    Returns:
+        0 全部成功（含全部命中缓存）；1 存在转写失败或输入缺失。
+    """
+    project = Path(project_dir).resolve()
+    if not project.is_dir():
+        print(f"❌ 项目目录不存在: {project}", file=sys.stderr)
+        return 1
+    audio_path = Path(audio_dir) if audio_dir else project / "assets" / "audio"
+    out_path = Path(out_dir) if out_dir else project / "config" / "pinyin_qa" / "asr"
+    if not audio_path.is_dir():
+        print(f"❌ 音频目录不存在: {audio_path}", file=sys.stderr)
+        return 1
+    out_path.mkdir(parents=True, exist_ok=True)
+
+    wanted = parse_lines(lines)
+    wavs: list[tuple[int, Path]] = []
+    for p in sorted(audio_path.glob("*.wav")):
+        m = NUM_RE.match(p.stem)
+        if not m:
+            print(f"⚠️  跳过非编号文件: {p.name}")
+            continue
+        line = int(m.group(1))
+        if wanted is not None and line not in wanted:
+            continue
+        wavs.append((line, p))
+    if not wavs:
+        print("❌ 没有匹配的 wav 文件", file=sys.stderr)
+        return 1
+
+    done = skipped = 0
+    failures: list[int] = []
+    whisper_model = None  # 懒加载，全部命中缓存时不加载模型
+
+    for idx, (line, wav) in enumerate(wavs, 1):
+        cache_path = out_path / f"{line:03d}.json"
+        if not force and cache_valid(cache_path, wav):
+            skipped += 1
+            continue
+        if whisper_model is None:
+            if lazy_pinyin is None:
+                print("❌ 缺 pypinyin → pip install -r requirements.txt", file=sys.stderr)
+                return 1
+            print(f"⏳ 加载 Whisper 模型 {model} ...")
+            import whisper  # 延迟到确需转写时
+
+            whisper_model = whisper.load_model(model)
+        try:
+            hyp = whisper_model.transcribe(str(wav), language=language, fp16=False)["text"].strip()
+            chars = [
+                {"char": c,
+                 "pinyin": lazy_pinyin(c)[0],
+                 "pinyin_tone": lazy_pinyin(c, style=Style.TONE3)[0]}
+                for c in CJK_RE.findall(hyp)
+            ]
+            payload = {
+                "line": line,
+                "file": wav.name,
+                "audio_mtime": round(wav.stat().st_mtime, 3),
+                "whisper_model": model,
+                "language": language,
+                "text": hyp,
+                "chars": chars,
+            }
+            cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            done += 1
+            print(f"[{idx}/{len(wavs)}] {wav.name} ✓ {len(chars)}字 {hyp[:40]}")
+        except Exception as e:  # noqa: BLE001 — 单文件失败不中断批处理
+            failures.append(line)
+            print(f"[{idx}/{len(wavs)}] {wav.name} ✗ {e}", file=sys.stderr)
+
+    print(f"\n完成: 新转写 {done}, 缓存命中 {skipped}, 失败 {len(failures)}")
+    print(f"缓存目录: {out_path}")
+    if failures:
+        print(f"失败行: {failures}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def check_prereqs() -> int:
+    """依赖检查：齐全 → 0；缺失 → 1 并给出安装指引（find_spec 查元数据不执行模块）。"""
+    missing = [mod for mod in ("pypinyin", "whisper", "rapidfuzz")
+               if importlib.util.find_spec(mod) is None]
+    if missing:
+        print(f"❌ 缺依赖: {', '.join(missing)} → pip install -r requirements.txt",
+              file=sys.stderr)
+        return 1
+    print("✅ 依赖齐: whisper / pypinyin / rapidfuzz（首次转写会联网下载 Whisper 模型）")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Whisper 批量转写 + 逐字拼音缓存")
     ap.add_argument("--project-dir", default=None,
@@ -85,98 +188,17 @@ def main() -> int:
     args = ap.parse_args()
 
     if args.check_prereqs:
-        missing = []
-        for mod in ("whisper", "rapidfuzz"):
-            try:
-                __import__(mod)
-            except ImportError:
-                missing.append(mod)
-        if lazy_pinyin is None:
-            missing.insert(0, "pypinyin")
-        if missing:
-            print(f"❌ 缺依赖: {', '.join(missing)} → pip install -r requirements.txt",
-                  file=sys.stderr)
-            return 1
-        print("✅ 依赖齐: whisper / pypinyin / rapidfuzz（首次转写会联网下载 Whisper 模型）")
-        return 0
+        return check_prereqs()
 
     if not args.project_dir:
         print("❌ --project-dir 必填", file=sys.stderr)
         return 1
-
-    project = Path(args.project_dir).resolve()
-    if not project.is_dir():
-        print(f"❌ 项目目录不存在: {project}", file=sys.stderr)
-        return 1
-    audio_dir = Path(args.audio_dir) if args.audio_dir else project / "assets" / "audio"
-    out_dir = Path(args.out_dir) if args.out_dir else project / "config" / "pinyin_qa" / "asr"
-    if not audio_dir.is_dir():
-        print(f"❌ 音频目录不存在: {audio_dir}", file=sys.stderr)
-        return 1
-    out_dir.mkdir(parents=True, exist_ok=True)
-
-    wanted = parse_lines(args.lines)
-    wavs: list[tuple[int, Path]] = []
-    for p in sorted(audio_dir.glob("*.wav")):
-        m = NUM_RE.match(p.stem)
-        if not m:
-            print(f"⚠️  跳过非编号文件: {p.name}")
-            continue
-        line = int(m.group(1))
-        if wanted is not None and line not in wanted:
-            continue
-        wavs.append((line, p))
-    if not wavs:
-        print("❌ 没有匹配的 wav 文件", file=sys.stderr)
-        return 1
-
-    done = skipped = 0
-    failures: list[int] = []
-    model = None  # 懒加载，全部命中缓存时不加载模型
-
-    for idx, (line, wav) in enumerate(wavs, 1):
-        cache_path = out_dir / f"{line:03d}.json"
-        if not args.force and cache_valid(cache_path, wav):
-            skipped += 1
-            continue
-        if model is None:
-            if lazy_pinyin is None:
-                print("❌ 缺 pypinyin → pip install -r requirements.txt", file=sys.stderr)
-                return 1
-            print(f"⏳ 加载 Whisper 模型 {args.model} ...")
-            import whisper  # 延迟到确需转写时
-
-            model = whisper.load_model(args.model)
-        try:
-            hyp = model.transcribe(str(wav), language=args.language, fp16=False)["text"].strip()
-            chars = [
-                {"char": c,
-                 "pinyin": lazy_pinyin(c)[0],
-                 "pinyin_tone": lazy_pinyin(c, style=Style.TONE3)[0]}
-                for c in CJK_RE.findall(hyp)
-            ]
-            payload = {
-                "line": line,
-                "file": wav.name,
-                "audio_mtime": round(wav.stat().st_mtime, 3),
-                "whisper_model": args.model,
-                "language": args.language,
-                "text": hyp,
-                "chars": chars,
-            }
-            cache_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-            done += 1
-            print(f"[{idx}/{len(wavs)}] {wav.name} ✓ {len(chars)}字 {hyp[:40]}")
-        except Exception as e:  # noqa: BLE001 — 单文件失败不中断批处理
-            failures.append(line)
-            print(f"[{idx}/{len(wavs)}] {wav.name} ✗ {e}", file=sys.stderr)
-
-    print(f"\n完成: 新转写 {done}, 缓存命中 {skipped}, 失败 {len(failures)}")
-    print(f"缓存目录: {out_dir}")
-    if failures:
-        print(f"失败行: {failures}", file=sys.stderr)
-        return 1
-    return 0
+    return run_transcribe(
+        args.project_dir,
+        audio_dir=args.audio_dir, out_dir=args.out_dir,
+        model=args.model, language=args.language,
+        lines=args.lines, force=args.force,
+    )
 
 
 if __name__ == "__main__":

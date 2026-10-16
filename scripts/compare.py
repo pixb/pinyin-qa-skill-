@@ -357,7 +357,66 @@ def format_report(project_name: str, s: dict, records: list[dict], strict: bool)
     return "\n".join(md)
 
 
-# ── main ────────────────────────────────────────────────────────
+# ── 步骤函数 / main ─────────────────────────────────────────────
+
+def run_compare(
+    project_dir: str | Path,
+    *,
+    understanding: str | Path | None = None,
+    asr_dir: str | Path | None = None,
+    output: str | Path | None = None,
+    report_dir: str | Path | None = None,
+    strict_tone: bool = False,
+    fail_on_p0: bool = False,
+) -> int:
+    """步骤函数（供 run_pipeline.py 导入调用）：装载 → 逐行比对 → 写报告。
+
+    Returns:
+        0 对比完成；1 输入错误；2 fail_on_p0 且存在 P0。
+    """
+    project = Path(project_dir).resolve()
+    base = project / "config" / "pinyin_qa"
+    und_path = Path(understanding) if understanding else base
+    asr_path = Path(asr_dir) if asr_dir else base / "asr"
+    out_path = Path(output) if output else base / "summary.json"
+    out_dir = Path(report_dir) if report_dir else out_path.parent
+
+    try:
+        und = load_understanding(und_path)
+    except (FileNotFoundError, ValueError, json.JSONDecodeError) as e:
+        print(f"❌ {e}", file=sys.stderr)
+        return 1
+    if not und:
+        print("❌ understanding 为空", file=sys.stderr)
+        return 1
+
+    records: list[dict] = []
+    missing_cache: list[int] = []
+    for line in sorted(und):
+        audio = load_asr(asr_path, line)
+        if audio is None:
+            missing_cache.append(line)
+            continue
+        records.append({"line": line, **compare_line(und[line], audio, strict_tone)})
+
+    if missing_cache:
+        shown = ", ".join(str(x) for x in missing_cache[:20])
+        more = f" 等 {len(missing_cache)} 行" if len(missing_cache) > 20 else ""
+        print(f"❌ 缺 ASR 缓存（先跑 transcribe.py）: {shown}{more}", file=sys.stderr)
+        return 1
+
+    summary = write_reports(out_path, project.name, records, strict_tone)
+    c = summary["counts"]
+    print(f"✅ 对比完成 {summary['graded_lines']} 行 | "
+          f"P0={c['P0']} P1={c['P1']} OK={c['OK']} | "
+          f"字级准确率 {summary['char_accuracy']:.2%}")
+    print(f"   报告: {out_dir / 'report.md'}")
+    print(f"   汇总: {out_path}")
+
+    if fail_on_p0 and c["P0"] > 0:
+        return 2
+    return 0
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="对比 agent 理解拼音与 Whisper 音频读音")
@@ -373,49 +432,12 @@ def main() -> int:
     ap.add_argument("--strict-tone", action="store_true", help="严格比对声调")
     ap.add_argument("--fail-on-p0", action="store_true", help="存在 P0 时退出码 2")
     args = ap.parse_args()
-
-    project = Path(args.project_dir).resolve()
-    base = project / "config" / "pinyin_qa"
-    und_path = Path(args.understanding) if args.understanding else base
-    asr_dir = Path(args.asr_dir) if args.asr_dir else base / "asr"
-    out_path = Path(args.output) if args.output else base / "summary.json"
-    out_dir = Path(args.report_dir) if args.report_dir else out_path.parent
-
-    try:
-        understanding = load_understanding(und_path)
-    except (FileNotFoundError, ValueError, json.JSONDecodeError) as e:
-        print(f"❌ {e}", file=sys.stderr)
-        return 1
-    if not understanding:
-        print("❌ understanding 为空", file=sys.stderr)
-        return 1
-
-    records: list[dict] = []
-    missing_cache: list[int] = []
-    for line in sorted(understanding):
-        audio = load_asr(asr_dir, line)
-        if audio is None:
-            missing_cache.append(line)
-            continue
-        records.append({"line": line, **compare_line(understanding[line], audio, args.strict_tone)})
-
-    if missing_cache:
-        shown = ", ".join(str(x) for x in missing_cache[:20])
-        more = f" 等 {len(missing_cache)} 行" if len(missing_cache) > 20 else ""
-        print(f"❌ 缺 ASR 缓存（先跑 transcribe.py）: {shown}{more}", file=sys.stderr)
-        return 1
-
-    summary = write_reports(out_path, project.name, records, args.strict_tone)
-    c = summary["counts"]
-    print(f"✅ 对比完成 {summary['graded_lines']} 行 | "
-          f"P0={c['P0']} P1={c['P1']} OK={c['OK']} | "
-          f"字级准确率 {summary['char_accuracy']:.2%}")
-    print(f"   报告: {out_dir / 'report.md'}")
-    print(f"   汇总: {out_path}")
-
-    if args.fail_on_p0 and c["P0"] > 0:
-        return 2
-    return 0
+    return run_compare(
+        args.project_dir,
+        understanding=args.understanding, asr_dir=args.asr_dir,
+        output=args.output, report_dir=args.report_dir,
+        strict_tone=args.strict_tone, fail_on_p0=args.fail_on_p0,
+    )
 
 
 if __name__ == "__main__":

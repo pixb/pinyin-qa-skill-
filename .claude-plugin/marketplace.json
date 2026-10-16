@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "pinyin-qa-skill",
+  "owner": {
+    "name": "pix"
+  },
+  "plugins": [
+    {
+      "name": "pinyin-qa-skill",
+      "source": "./",
+      "description": "Pinyin annotation QA pipeline: agent hand-annotates pinyin, Whisper transcribes audio, normalized alignment grades P0/P1/OK, dictionary-first fixes until P0=0."
+    }
+  ]
+}

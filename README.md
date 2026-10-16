@@ -19,9 +19,9 @@ P0 = 0 收口（上限 5 轮）
 
 ```bash
 pip install -r requirements.txt
-python3 scripts/transcribe.py --check-prereqs
-python3 scripts/transcribe.py --project-dir <项目目录>
-python3 scripts/compare.py    --project-dir <项目目录>
+python3 scripts/run_pipeline.py --check-prereqs
+# 先手写 <项目>/config/pinyin_qa/understanding.json（agent 逐字理解标注，禁库）
+python3 scripts/run_pipeline.py --project-dir <项目目录>
 # 读 <项目>/config/pinyin_qa/report.md
 ```
 
@@ -30,8 +30,9 @@ python3 scripts/compare.py    --project-dir <项目目录>
 | 路径 | 作用 |
 |---|---|
 | `SKILL.md` / `AGENTS.md` | skill 契约（工作流、分级、Gotchas） |
-| `scripts/transcribe.py` | Whisper 批量转写 + 逐字词典拼音缓存 |
-| `scripts/compare.py` | 对齐、容错、分级、报告（唯一口径权威） |
+| `scripts/run_pipeline.py` | 单入口编排器：前置校验 → 转写 → 对比（数据接线在代码内） |
+| `scripts/transcribe.py` | 步骤：Whisper 批量转写 + 逐字词典拼音缓存 |
+| `scripts/compare.py` | 步骤：对齐、容错、分级、报告（唯一口径权威） |
 | `scripts/run_evals.py` | 通用 eval runner（`--rollout` 全绿 14 / +holdout 21） |
 | `references/annotation-rules.md` | 注音写法与「字典优先」修复路径 |
 | `references/comparison.md` | 对齐/容错/分级口径与方法局限 |
@@ -46,3 +47,17 @@ python3 scripts/compare.py    --project-dir <项目目录>
   Gotchas 与 report §7，不粉饰。
 - **eval 钉分支**：case-1 容错、case-2 错音（跨字+同字）、case-3 漏覆盖
   （holdout），`suggest` 格式契约由 criterion 硬断言。
+
+## 安装
+
+使用安装脚本：
+
+```bash
+./install.sh                          # auto-detect platform, user-level
+./install.sh --platform opencode      # explicit platform, user-level
+./install.sh --dry-run                # preview without changes
+```
+
+该脚本会自动检测平台、将 `scripts/run_pipeline.py` 等文件写入对应平台目录（如
+`.claude/skills/`, `.agents/skills/`, `.opencode/skills/` 等），并提供激活指引。
+```
