@@ -1,0 +1,76 @@
+{
+  "skill": "pinyin-qa-skill",
+  "project": "input",
+  "strict_tone": false,
+  "line_count": 3,
+  "graded_lines": 3,
+  "counts": {
+    "P0": 0,
+    "P1": 0,
+    "OK": 3
+  },
+  "char_accuracy": 1.0,
+  "correct_count": 9,
+  "covered_count": 9,
+  "wrong_count": 0,
+  "audio_missing_count": 0,
+  "tolerated_count": 2,
+  "files": [
+    {
+      "line": 1,
+      "file": "001.wav",
+      "grade": "OK",
+      "reasons": [],
+      "accuracy": 1.0,
+      "correct": 3,
+      "covered": 3,
+      "wrong": [],
+      "audio_missing": [],
+      "tolerated": []
+    },
+    {
+      "line": 2,
+      "file": "002.wav",
+      "grade": "OK",
+      "reasons": [
+        "多音字容错放行 ×1（信息性）"
+      ],
+      "accuracy": 1.0,
+      "correct": 2,
+      "covered": 2,
+      "wrong": [],
+      "audio_missing": [],
+      "tolerated": [
+        {
+          "char_index": 2,
+          "char": "乐",
+          "model": "yue4",
+          "audio": "le",
+          "audio_char": "乐"
+        }
+      ]
+    },
+    {
+      "line": 3,
+      "file": "003.wav",
+      "grade": "OK",
+      "reasons": [
+        "多音字容错放行 ×1（信息性）"
+      ],
+      "accuracy": 1.0,
+      "correct": 4,
+      "covered": 4,
+      "wrong": [],
+      "audio_missing": [],
+      "tolerated": [
+        {
+          "char_index": 1,
+          "char": "阿",
+          "model": "e2",
+          "audio": "a",
+          "audio_char": "阿"
+        }
+      ]
+    }
+  ]
+}

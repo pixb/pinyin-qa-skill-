@@ -1,0 +1,118 @@
+{
+  "question": "这批 TTS 分段音频的读音和脚本注音/该读的音对不对？哪个字错了、是理解错还是 TTS 读错、怎么修注音、修完重生成后归零了没有？",
+  "trigger": [
+    "用户给出项目目录要求拼音质检/注音检查/读音比对",
+    "用户点名验证多音字注音（pinyin QA、polyphone QA）",
+    "修注音并重生成音频后要求回归验证 P0 是否归零",
+    "用户想知道哪些行的音频读音与理解/注音不一致"
+  ],
+  "decision": [
+    "agent 手写 understanding.json（人肉逐字标拼音，禁用一切库/脚本）",
+    "Whisper 转写 + 词典拼音缓存（mtime 失效），归一序列 Levenshtein 对齐",
+    "多音字读音集合容错后分级 P0/P1/OK，产出 report.md 与 summary.json",
+    "P0 处置 = 字典优先修注音（annotate-polyphones.py WORD_RULES）+ 重生成 + 循环",
+    "缺依赖时提示安装 requirements.txt 并停止"
+  ],
+  "evidence": [
+    "config/pinyin_qa/summary.json（counts / char_accuracy / 逐行 grade 与 wrong/missing/tolerated 明细）",
+    "config/pinyin_qa/report.md（结论总览、错音明细、漏覆盖、容错放行、处置建议、方法口径）",
+    "config/pinyin_qa/report.jsonl（逐行原始记录）",
+    "config/pinyin_qa/asr/NNN.json（Whisper 转写与逐字词典拼音，可复核）"
+  ],
+  "success_measure": "3 个 golden 分支 eval --rollout 全绿（14 passed / +holdout 21）；每个 P0 有字位级错音明细与可直接落 WORD_RULES 的建议注音；修复循环可用 --fail-on-p0 收口；报告无绝对路径无时间戳",
+  "outcome": "对指定项目完成注音质检闭环：分级报告 + 字典修复路径 + 重生成回归直到 P0=0",
+  "intended_users": ["有声书/视频项目维护者", "TTS 注音质控 agent 会话"],
+  "input_types": ["项目目录（含 config/script.txt 与 assets/audio）", "既有 understanding.json + asr 缓存（增量回归）"],
+  "output_artifacts": [
+    "config/pinyin_qa/understanding*.json（agent 手写理解标注）",
+    "config/pinyin_qa/asr/*.json（转写缓存）",
+    "config/pinyin_qa/summary.json",
+    "config/pinyin_qa/report.md / report.jsonl"
+  ],
+  "use_cases": [
+    "首次全量注音质检并给出修复清单",
+    "修注音重生成后的增量回归（--lines + --fail-on-p0）",
+    "strict-tone 模式的声调词典差异检查（可选）",
+    "对 report 容错放行项做人工复核"
+  ],
+  "examples": [
+    {
+      "invocation": "/pinyin-qa-skill content/productions/xxx/0008-zhengxinxiyoufen",
+      "description": "0008 项目全量注音质检（理解标注→转写→对比→报告）"
+    },
+    {
+      "invocation": "/pinyin-qa-skill content/productions/xxx/0008 --lines 2,8,39",
+      "description": "修注音重生成后只回归改动行"
+    }
+  ],
+  "permissions_systems": [
+    "Read project config/assets under the named directory",
+    "Write artifacts under <project>/config/pinyin_qa/ only",
+    "Whisper model download once (network), then local inference"
+  ],
+  "typical_completion_time": "understanding 标注为 agent 阅读时间；转写 160 文件 CPU 数分钟；对比秒级",
+  "compatibility": {
+    "declared": ["opencode", "claude-code", "codex", "cursor"],
+    "certified": ["opencode"]
+  },
+  "environment": {
+    "documentation_sources": [
+      "references/comparison.md (comparison authority: 对齐/容错/分级/局限)",
+      "references/annotation-rules.md (注音写法与修复路径权威)"
+    ],
+    "data_sources": [
+      "User project directory: config/script.txt, assets/audio/*.wav",
+      "Agent-authored config/pinyin_qa/understanding.json"
+    ],
+    "required_capabilities": [
+      "Python 3.10+ with openai-whisper/pypinyin/rapidfuzz",
+      "Local file read/write; network once for Whisper model download"
+    ],
+    "readiness_checks": [
+      "python3 scripts/transcribe.py --check-prereqs exits 0",
+      "Project directory exists and assets/audio contains numbered wav files"
+    ]
+  },
+  "routing_tests": {
+    "should_trigger": [
+      "质检 0008 的注音，看哪些行音频读音和注音不一致",
+      "检查这批多音字注音 TTS 读对没有",
+      "改完 WORD_RULES 重生成了，回归到 P0=0 了没有",
+      "帮我把 understanding 标注和音频读音逐字比对出报告",
+      "pinyin QA 报告里 P0 有哪几行"
+    ],
+    "should_not_trigger": [
+      "验证这批音频有没有漏读吞音整句缺失",
+      "检查音频爆音尾噪削波",
+      "审校 script.txt 的错别字",
+      "给这一章生成 TTS 音频",
+      "批量给 script.txt 加注音（那是 prosody/annotate 脚本的事）"
+    ]
+  },
+  "risk": {
+    "tier": "moderate",
+    "permissions": [
+      "Read project files under the named directory",
+      "Write only under <project>/config/pinyin_qa/"
+    ],
+    "mutation_boundary": "approval-required",
+    "approval_required": [
+      "Never modify script/annotation/audio directly: P0 fixes (WORD_RULES 条目、script_annotated.txt、音频重生成) are proposed with report evidence, executed only on user confirmation",
+      "Never weaken compare.py grading rules to clear findings"
+    ]
+  },
+  "software_mutation": {
+    "applies": false
+  },
+  "data_interfaces": {
+    "applies": false,
+    "justification": "understanding.json/asr/summary.json/report.* are skill-local artifact formats authored and versioned inside this repository; no external system client is generated"
+  },
+  "semantic_recon": {
+    "applies": false,
+    "justification": "Whisper local transcription + pypinyin dictionary lookup; no external source client or network protocol beyond one-time model download"
+  },
+  "semantic_contract": {
+    "applies": false
+  }
+}

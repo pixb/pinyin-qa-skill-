@@ -1,0 +1,3 @@
+openai-whisper>=20231117
+pypinyin>=0.55
+rapidfuzz>=3.6

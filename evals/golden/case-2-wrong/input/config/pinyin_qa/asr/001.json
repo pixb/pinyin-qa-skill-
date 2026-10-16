@@ -1,0 +1,20 @@
+{
+  "line": 1,
+  "file": "001.wav",
+  "audio_mtime": 1760000000.0,
+  "whisper_model": "small",
+  "language": "zh",
+  "text": "成常",
+  "chars": [
+    {
+      "char": "成",
+      "pinyin": "cheng",
+      "pinyin_tone": "cheng2"
+    },
+    {
+      "char": "常",
+      "pinyin": "chang",
+      "pinyin_tone": "chang2"
+    }
+  ]
+}

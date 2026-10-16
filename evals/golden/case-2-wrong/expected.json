@@ -1,0 +1,74 @@
+{
+  "skill": "pinyin-qa-skill",
+  "project": "input",
+  "strict_tone": false,
+  "line_count": 2,
+  "graded_lines": 2,
+  "counts": {
+    "P0": 2,
+    "P1": 0,
+    "OK": 0
+  },
+  "char_accuracy": 0.5,
+  "correct_count": 2,
+  "covered_count": 4,
+  "wrong_count": 2,
+  "audio_missing_count": 0,
+  "tolerated_count": 0,
+  "files": [
+    {
+      "line": 1,
+      "file": "001.wav",
+      "grade": "P0",
+      "reasons": [
+        "错音 ×1"
+      ],
+      "accuracy": 0.5,
+      "correct": 1,
+      "covered": 2,
+      "wrong": [
+        {
+          "char_index": 2,
+          "char": "长",
+          "model": "zhang3",
+          "audio": "chang",
+          "audio_char": "常",
+          "suggest": "ZHANG3",
+          "context": [
+            "成",
+            "长"
+          ]
+        }
+      ],
+      "audio_missing": [],
+      "tolerated": []
+    },
+    {
+      "line": 2,
+      "file": "002.wav",
+      "grade": "P0",
+      "reasons": [
+        "错音 ×1"
+      ],
+      "accuracy": 0.5,
+      "correct": 1,
+      "covered": 2,
+      "wrong": [
+        {
+          "char_index": 2,
+          "char": "耨",
+          "model": "nuo4",
+          "audio": "nou",
+          "audio_char": "耨",
+          "suggest": "NUO4",
+          "context": [
+            "阿",
+            "耨"
+          ]
+        }
+      ],
+      "audio_missing": [],
+      "tolerated": []
+    }
+  ]
+}

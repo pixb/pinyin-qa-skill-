@@ -1,0 +1,25 @@
+{
+  "line": 1,
+  "file": "001.wav",
+  "audio_mtime": 1760000000.0,
+  "whisper_model": "small",
+  "language": "zh",
+  "text": "须菩提",
+  "chars": [
+    {
+      "char": "须",
+      "pinyin": "xu",
+      "pinyin_tone": "xu1"
+    },
+    {
+      "char": "菩",
+      "pinyin": "pu",
+      "pinyin_tone": "pu2"
+    },
+    {
+      "char": "提",
+      "pinyin": "ti",
+      "pinyin_tone": "ti2"
+    }
+  ]
+}

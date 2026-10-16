@@ -1,0 +1,20 @@
+{
+  "line": 2,
+  "file": "002.wav",
+  "audio_mtime": 1760000000.0,
+  "whisper_model": "small",
+  "language": "zh",
+  "text": "音乐",
+  "chars": [
+    {
+      "char": "音",
+      "pinyin": "yin",
+      "pinyin_tone": "yin1"
+    },
+    {
+      "char": "乐",
+      "pinyin": "le",
+      "pinyin_tone": "le4"
+    }
+  ]
+}

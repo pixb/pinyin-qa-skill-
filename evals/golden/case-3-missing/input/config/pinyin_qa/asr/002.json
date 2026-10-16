@@ -1,0 +1,25 @@
+{
+  "line": 2,
+  "file": "002.wav",
+  "audio_mtime": 1760000000.0,
+  "whisper_model": "small",
+  "language": "zh",
+  "text": "观自在",
+  "chars": [
+    {
+      "char": "观",
+      "pinyin": "guan",
+      "pinyin_tone": "guan1"
+    },
+    {
+      "char": "自",
+      "pinyin": "zi",
+      "pinyin_tone": "zi4"
+    },
+    {
+      "char": "在",
+      "pinyin": "zai",
+      "pinyin_tone": "zai4"
+    }
+  ]
+}

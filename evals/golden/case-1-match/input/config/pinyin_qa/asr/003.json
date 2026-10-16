@@ -1,0 +1,30 @@
+{
+  "line": 3,
+  "file": "003.wav",
+  "audio_mtime": 1760000000.0,
+  "whisper_model": "small",
+  "language": "zh",
+  "text": "阿弥陀佛",
+  "chars": [
+    {
+      "char": "阿",
+      "pinyin": "a",
+      "pinyin_tone": "a1"
+    },
+    {
+      "char": "弥",
+      "pinyin": "mi",
+      "pinyin_tone": "mi2"
+    },
+    {
+      "char": "陀",
+      "pinyin": "tuo",
+      "pinyin_tone": "tuo2"
+    },
+    {
+      "char": "佛",
+      "pinyin": "fo",
+      "pinyin_tone": "fo2"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "line": 1,
+  "file": "001.wav",
+  "audio_mtime": 1760000000.0,
+  "whisper_model": "small",
+  "language": "zh",
+  "text": "悲济世",
+  "chars": [
+    {
+      "char": "悲",
+      "pinyin": "bei",
+      "pinyin_tone": "bei2"
+    },
+    {
+      "char": "济",
+      "pinyin": "ji",
+      "pinyin_tone": "ji4"
+    },
+    {
+      "char": "世",
+      "pinyin": "shi",
+      "pinyin_tone": "shi4"
+    }
+  ]
+}
